@@ -1,0 +1,78 @@
+name: CD
+
+# Runs only after the CI workflow finishes successfully on main
+on:
+  workflow_run:
+    workflows: [ "CI" ]
+    branches: [ main ]
+    types: [ completed ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-image:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout the exact commit CI tested
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Placeholder: turned off until you pick a hosting target.
+  # Remove `if: false` and fill in the steps once you know where to deploy.
+  deploy:
+    if: false
+    needs: publish-image
+    runs-on: ubuntu-latest
+    environment: production   # lets you require manual approval in repo Settings
+    steps:
+      - name: "Deploy (example: SSH into a server and restart the container)"
+        run: echo "Replace me, see the commented example below"
+        # uses: appleboy/ssh-action@v1.0.3
+        # with:
+        #   host: ${{ secrets.DEPLOY_HOST }}
+        #   username: ${{ secrets.DEPLOY_USER }}
+        #   key: ${{ secrets.DEPLOY_SSH_KEY }}
+        #   script: |
+        #     docker pull ghcr.io/${{ github.repository }}:latest
+        #     docker stop app || true
+        #     docker rm app || true
+        #     docker run -d --name app -p 8080:8080 \
+        #       -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
+        #       -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
+        #       -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
+        #       ghcr.io/${{ github.repository }}:latest
