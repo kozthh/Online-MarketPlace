@@ -1,29 +1,26 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.RegisterRequest;
-import com.example.demo.dto.UserResponse;
-import com.example.demo.service.UserService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.auth0.spring.boot.Auth0AuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final UserService userService;
+    @GetMapping("/me")
+    public Map<String, Object> me(Authentication authentication) {
+        Auth0AuthenticationToken token = (Auth0AuthenticationToken) authentication;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
-    }
-
-    @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse register(@Valid @RequestBody RegisterRequest request) {
-        return userService.register(request);
+        Map<String, Object> body = new HashMap<>();
+        body.put("sub", authentication.getName());
+        body.put("email", token.getClaim("email"));
+        body.put("scopes", token.getScopes());
+        return body;
     }
 }

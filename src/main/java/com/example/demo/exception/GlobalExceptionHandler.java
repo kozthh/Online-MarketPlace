@@ -22,12 +22,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, message, request);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ApiError> handleEmailAlreadyExists(EmailAlreadyExistsException exception,
-                                                             HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, exception.getMessage(), request);
-    }
-
     private ResponseEntity<ApiError> build(HttpStatus status, String message, HttpServletRequest request) {
         ApiError error = new ApiError(
                 Instant.now(),
