@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Marketplace</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Online Marketplace</h1>
+    <p id="status" class="muted">Checking session...</p>
+
+    <section id="logged-out" hidden>
+      <p>Sign in to continue.</p>
+      <button id="login" class="primary">Log in</button>
+      <button id="signup" class="secondary">Sign up</button>
+      <button id="login-email" class="secondary">Email me a code</button>
+    </section>
+
+    <section id="logged-in" hidden>
+      <img id="avatar" alt="" width="64" height="64">
+      <p id="user-name"></p>
+      <p id="user-email" class="muted"></p>
+      <button id="call-api" class="primary">Call protected API</button>
+      <button id="logout" class="secondary">Log out</button>
+    </section>
+
+    <pre id="result" hidden></pre>
+  </main>
+
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.30.0/auth0-spa-js.production.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
